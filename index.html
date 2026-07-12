@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T's — AI Email Assistant</title>
+<meta name="description" content="T's: a premium AI email assistant for drafting, replying, improving, rewriting and summarizing email.">
+
+<!-- Fonts (bundled locally — works fully offline) -->
+<link href="vendor/fonts/fonts.css" rel="stylesheet">
+
+<!-- Bootstrap 5 (bundled locally — works fully offline) -->
+<link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons (bundled locally — works fully offline) -->
+<link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.min.css">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR (desktop) ============ -->
+  <aside class="sidebar d-none d-lg-flex flex-column" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="seal-mark"><span>T</span></div>
+      <div class="brand-text">
+        <div class="brand-name">T's</div>
+        <div class="brand-tag">AI correspondence desk</div>
+      </div>
+    </div>
+
+    <button class="btn btn-new-draft" id="newChatBtn">
+      <i class="bi bi-feather"></i> New draft
+    </button>
+
+    <nav class="mode-nav">
+      <div class="mode-nav-label">Compose mode</div>
+      <button class="mode-item active" data-mode="generate">
+        <i class="bi bi-pencil-square"></i><span>Generate</span>
+      </button>
+      <button class="mode-item" data-mode="reply">
+        <i class="bi bi-reply"></i><span>Reply</span>
+      </button>
+      <button class="mode-item" data-mode="improve">
+        <i class="bi bi-stars"></i><span>Improve</span>
+      </button>
+      <button class="mode-item" data-mode="rewrite">
+        <i class="bi bi-arrow-repeat"></i><span>Rewrite</span>
+      </button>
+      <button class="mode-item" data-mode="summarize">
+        <i class="bi bi-list-task"></i><span>Summarize</span>
+      </button>
+    </nav>
+
+    <div class="history-label">
+      <span>Drafting history</span>
+    </div>
+    <div class="history-list" id="historyList">
+      <!-- chat history items injected here -->
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="footer-icon-btn" id="themeToggleBtn" title="Toggle theme">
+        <i class="bi bi-moon-stars"></i>
+      </button>
+      <button class="footer-icon-btn" id="clearAllBtn" title="Clear all drafts">
+        <i class="bi bi-trash3"></i>
+      </button>
+      <button class="btn btn-settings" id="settingsBtn">
+        <i class="bi bi-gear"></i> API settings
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ OFFCANVAS SIDEBAR (mobile) ============ -->
+  <div class="offcanvas offcanvas-start sidebar-offcanvas" tabindex="-1" id="mobileSidebar">
+    <div class="offcanvas-header">
+      <div class="sidebar-brand mb-0">
+        <div class="seal-mark"><span>T</span></div>
+        <div class="brand-text">
+          <div class="brand-name">T's</div>
+          <div class="brand-tag">AI correspondence desk</div>
+        </div>
+      </div>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+      <button class="btn btn-new-draft" id="newChatBtnMobile">
+        <i class="bi bi-feather"></i> New draft
+      </button>
+      <nav class="mode-nav" id="mobileModeNav">
+        <div class="mode-nav-label">Compose mode</div>
+        <button class="mode-item active" data-mode="generate"><i class="bi bi-pencil-square"></i><span>Generate</span></button>
+        <button class="mode-item" data-mode="reply"><i class="bi bi-reply"></i><span>Reply</span></button>
+        <button class="mode-item" data-mode="improve"><i class="bi bi-stars"></i><span>Improve</span></button>
+        <button class="mode-item" data-mode="rewrite"><i class="bi bi-arrow-repeat"></i><span>Rewrite</span></button>
+        <button class="mode-item" data-mode="summarize"><i class="bi bi-list-task"></i><span>Summarize</span></button>
+      </nav>
+      <div class="history-label"><span>Drafting history</span></div>
+      <div class="history-list" id="historyListMobile"></div>
+      <div class="sidebar-footer">
+        <button class="footer-icon-btn" id="themeToggleBtnMobile"><i class="bi bi-moon-stars"></i></button>
+        <button class="footer-icon-btn" id="clearAllBtnMobile"><i class="bi bi-trash3"></i></button>
+        <button class="btn btn-settings" id="settingsBtnMobile"><i class="bi bi-gear"></i> API settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN PANEL ============ -->
+  <main class="main-panel">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="icon-btn d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="topbar-title">
+        <span class="mode-pill" id="currentModePill"><i class="bi bi-pencil-square"></i> Generate</span>
+        <span class="chat-title" id="chatTitle">Untitled draft</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="exportBtn" title="Export conversation">
+          <i class="bi bi-download"></i>
+        </button>
+        <button class="icon-btn" id="clearChatBtn" title="Clear this draft">
+          <i class="bi bi-eraser"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Chat scroll area -->
+    <div class="chat-scroll" id="chatScroll">
+
+      <!-- Empty / landing state -->
+      <div class="landing-state" id="landingState">
+        <div class="landing-hero">
+          <div class="seal-mark seal-lg"><span>T</span></div>
+          <h1>Every great email starts with a draft.</h1>
+          <p>Tell T's what you need — a cold outreach, a hard follow-up, a graceful decline — and get a polished, human email in seconds.</p>
+        </div>
+        <div class="suggestion-grid" id="suggestionGrid">
+          <!-- suggestion cards injected -->
+        </div>
+      </div>
+
+      <!-- Messages render here -->
+      <div class="messages" id="messages"></div>
+
+    </div>
+
+    <!-- Composer dock -->
+    <div class="composer-dock">
+      <div class="composer-card">
+
+        <div class="composer-chips" id="composerModeChips">
+          <button class="chip active" data-mode="generate"><i class="bi bi-pencil-square"></i> Generate</button>
+          <button class="chip" data-mode="reply"><i class="bi bi-reply"></i> Reply</button>
+          <button class="chip" data-mode="improve"><i class="bi bi-stars"></i> Improve</button>
+          <button class="chip" data-mode="rewrite"><i class="bi bi-arrow-repeat"></i> Rewrite</button>
+          <button class="chip" data-mode="summarize"><i class="bi bi-list-task"></i> Summarize</button>
+        </div>
+
+        <textarea id="composerInput" class="composer-textarea" rows="1"
+          placeholder="Describe the email you need — recipient, purpose, key points…"></textarea>
+
+        <div class="composer-toolbar">
+          <div class="composer-selects">
+            <div class="select-wrap">
+              <i class="bi bi-mic"></i>
+              <select id="toneSelect" class="composer-select" title="Tone">
+                <option value="professional" selected>Professional</option>
+                <option value="friendly">Friendly</option>
+                <option value="formal">Formal</option>
+                <option value="confident">Confident</option>
+                <option value="warm">Warm</option>
+                <option value="direct">Direct</option>
+                <option value="apologetic">Apologetic</option>
+                <option value="persuasive">Persuasive</option>
+              </select>
+            </div>
+            <div class="select-wrap">
+              <i class="bi bi-rulers"></i>
+              <select id="lengthSelect" class="composer-select" title="Length">
+                <option value="short">Short</option>
+                <option value="medium" selected>Medium</option>
+                <option value="long">Long</option>
+              </select>
+            </div>
+            <button class="context-toggle" id="contextToggle" type="button">
+              <i class="bi bi-paperclip"></i> Context
+            </button>
+          </div>
+          <button class="send-btn" id="sendBtn">
+            <i class="bi bi-send"></i>
+          </button>
+        </div>
+
+        <!-- Collapsible context panel -->
+        <div class="context-panel" id="contextPanel">
+          <div class="context-grid">
+            <input type="text" id="ctxRecipient" class="context-input" placeholder="Recipient name / role">
+            <input type="text" id="ctxSubject" class="context-input" placeholder="Subject or topic">
+          </div>
+          <textarea id="ctxOriginal" class="context-input context-textarea" rows="3"
+            placeholder="Paste the original email here (for Reply, Improve, Rewrite, Summarize)…"></textarea>
+        </div>
+
+        <div class="composer-hint">
+          <i class="bi bi-info-circle"></i>
+          <span>T's drafts, you approve. Always review before sending.</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============ SETTINGS MODAL ============ -->
+<div class="modal fade" id="settingsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content settings-modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-gear me-2"></i>API settings</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="settings-intro">Connect T's to an OpenAI-compatible AI provider. Your key is stored only in this browser and sent directly to the provider you choose.</p>
+
+        <label class="settings-label">Provider</label>
+        <div class="provider-grid" id="providerGrid">
+          <button class="provider-btn active" data-provider="groq">Groq</button>
+          <button class="provider-btn" data-provider="openrouter">OpenRouter</button>
+          <button class="provider-btn" data-provider="openai">OpenAI</button>
+          <button class="provider-btn" data-provider="local">Local (offline)</button>
+          <button class="provider-btn" data-provider="custom">Custom</button>
+        </div>
+
+        <label class="settings-label">API base URL</label>
+        <input type="text" id="apiBaseUrl" class="form-control settings-input" placeholder="https://api.groq.com/openai/v1/chat/completions">
+
+        <label class="settings-label">Model</label>
+        <input type="text" id="apiModel" class="form-control settings-input" placeholder="llama-3.3-70b-versatile">
+
+        <label class="settings-label">API key</label>
+        <div class="input-group">
+          <input type="password" id="apiKey" class="form-control settings-input" placeholder="sk-••••••••••••••••">
+          <button class="btn btn-outline-secondary" type="button" id="toggleKeyVisibility"><i class="bi bi-eye"></i></button>
+        </div>
+
+        <div class="settings-row-split">
+          <div>
+            <label class="settings-label">Temperature</label>
+            <input type="range" min="0" max="1.2" step="0.1" value="0.7" id="temperatureRange" class="form-range">
+            <div class="range-value" id="temperatureValue">0.7</div>
+          </div>
+          <div>
+            <label class="settings-label">Max tokens</label>
+            <input type="number" id="maxTokens" class="form-control settings-input" value="900" min="100" max="4000" step="50">
+          </div>
+        </div>
+
+        <div class="settings-note">
+          <i class="bi bi-shield-check"></i>
+          <span>Note: browser-side calls need a CORS-friendly provider. Groq and OpenRouter work directly from the browser; OpenAI's API typically requires a small server-side proxy. Pick "Local (offline)" to talk to a model running on your own machine (e.g. Ollama or LM Studio) with no internet needed.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="testConnectionBtn"><i class="bi bi-lightning-charge"></i> Test connection</button>
+        <button class="btn btn-save" id="saveSettingsBtn">Save settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
