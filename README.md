@@ -74,4 +74,3 @@ Enter your API key Get it from any openAI resources and choose **Settings**, cho
 - Mozilla Firefox
 - Safari
 
----
